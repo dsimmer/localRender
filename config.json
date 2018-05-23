@@ -1,0 +1,8 @@
+{
+    "BeforeCommand":     "export default connect",
+    "AfterCommand":     "export default connect",
+    "InputFormat":     "export default connect",
+    "OutputFormat":     "export default connect",
+    "Freq":     "export default connect",
+    "Target":     "export default connect"
+}
