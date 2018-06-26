@@ -18,9 +18,9 @@ func check(e error) {
 }
 
 type configuration struct {
-	// space separated "cmd arg1 arg2". Join together like BeforeCommmand + filepath + Aftercommand
-	BeforeCommand string
-	AfterCommand  string
+	// Useage: space separated "cmd arg1 arg2". Joined together for the final command like so: BeforeCommmand + filepath + AfterPath
+	BeforePath string
+	AfterPath  string
 	// Desired input format ".mp4"
 	InputFormat string
 	// Desired output format ".mp4". If this doesnt match the output of the command, we will keep retrying the item
@@ -59,10 +59,13 @@ func (fp *FileParser) ProcessFile() error {
 	OutputFile := strings.TrimSuffix(fp.Info.Name(), fp.Config.InputFormat) + fp.Config.OutputFormat
 	_, err := os.Stat(OutputFile)
 	isOutputExist := err == nil
-	fmt.Println(fp.Path + " added to queue")
 	if isOutputExist {
+		fmt.Println(fp.Path + " already done")
+	} else if fp.Queue.Queue[fp.Path] {
+		fmt.Println(fp.Path + " already in queue")
+	} else {
 		fp.Queue.Queue[fp.Path] = true
-		check(err)
+		fmt.Println(fp.Path + " added to queue")
 	}
 	return nil
 }
@@ -70,13 +73,17 @@ func (fp *FileParser) ProcessFile() error {
 // ProcessQueue iterates over the queue and runs the command
 func (q *Queue) ProcessQueue() error {
 	for key := range q.Queue {
-		beforeCommands := strings.Split(q.Config.BeforeCommand+key, " ")
-		afterCommands := strings.Split(q.Config.AfterCommand, " ")
-		commands := append(beforeCommands, afterCommands...)
+		beforePaths := strings.Split(q.Config.BeforePath+key, " ")
+		afterPaths := strings.Split(q.Config.AfterPath, " ")
+		commands := append(beforePaths, afterPaths...)
 		cmd := exec.Command(commands[0], commands[1:]...)
 		err := cmd.Run()
 		check(err)
 		fmt.Println(key + " done")
+		outputFile := strings.TrimSuffix(key, q.Config.InputFormat) + q.Config.OutputFormat
+
+		err = ioutil.WriteFile(outputFile, []byte(""), 0644)
+		check(err)
 		delete(q.Queue, key)
 	}
 	return nil
