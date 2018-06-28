@@ -1,5 +1,5 @@
 {
-    "BeforeCommand":     "Render.exe -r <renderername> -proj c:\\Render",
+    "BeforeCommand":     "Render.exe -r <renderername> -rd c:\\Render",
     "AfterCommand":     "",
     "InputFormat":     ".ma",
     "OutputFormat":     ".done",
