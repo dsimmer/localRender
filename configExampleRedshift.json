@@ -1,0 +1,8 @@
+{
+    "BeforeCommand":     "redshiftCmdLine",
+    "AfterCommand":     "-oip c:\\Rendering",
+    "InputFormat":     ".rs",
+    "OutputFormat":     ".done",
+    "Freq":     "5m",
+    "Target":     "c:\\Rendering"
+}
