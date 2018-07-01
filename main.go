@@ -33,8 +33,9 @@ type configuration struct {
 
 // Queue for files to be processed
 type Queue struct {
-	Queue  map[string]bool
-	Config configuration
+	Queue     map[string]bool
+	QueueSize map[string]int64
+	Config    configuration
 }
 
 /*
@@ -57,7 +58,7 @@ func (fp *FileParser) ProcessFile() error {
 	}
 
 	OutputFile := strings.TrimSuffix(fp.Info.Name(), fp.Config.InputFormat) + fp.Config.OutputFormat
-	_, err := os.Stat(OutputFile)
+	file, err := os.Stat(OutputFile)
 	isOutputExist := err == nil
 	if isOutputExist {
 		fmt.Println(fp.Path + " already done")
@@ -65,6 +66,7 @@ func (fp *FileParser) ProcessFile() error {
 		fmt.Println(fp.Path + " already in queue")
 	} else {
 		fp.Queue.Queue[fp.Path] = true
+		fp.Queue.QueueSize[fp.Path] = file.Size()
 		fmt.Println(fp.Path + " added to queue")
 	}
 	return nil
@@ -73,18 +75,26 @@ func (fp *FileParser) ProcessFile() error {
 // ProcessQueue iterates over the queue and runs the command
 func (q *Queue) ProcessQueue() error {
 	for key := range q.Queue {
-		beforePaths := strings.Split(q.Config.BeforePath+key, " ")
-		afterPaths := strings.Split(q.Config.AfterPath, " ")
-		commands := append(beforePaths, afterPaths...)
-		cmd := exec.Command(commands[0], commands[1:]...)
-		err := cmd.Run()
+		InputFile, err := os.Stat(key)
 		check(err)
-		fmt.Println(key + " done")
-		outputFile := strings.TrimSuffix(key, q.Config.InputFormat) + q.Config.OutputFormat
 
-		err = ioutil.WriteFile(outputFile, []byte(""), 0644)
-		check(err)
-		delete(q.Queue, key)
+		if q.QueueSize[key] == InputFile.Size() {
+			beforePaths := strings.Split(q.Config.BeforePath+key, " ")
+			afterPaths := strings.Split(q.Config.AfterPath, " ")
+			commands := append(beforePaths, afterPaths...)
+			cmd := exec.Command(commands[0], commands[1:]...)
+			err := cmd.Run()
+			check(err)
+			fmt.Println(key + " done")
+			outputFile := strings.TrimSuffix(key, q.Config.InputFormat) + q.Config.OutputFormat
+
+			err = ioutil.WriteFile(outputFile, []byte(""), 0644)
+			check(err)
+			delete(q.Queue, key)
+			delete(q.QueueSize, key)
+		} else {
+			q.QueueSize[key] = InputFile.Size()
+		}
 	}
 	return nil
 }

@@ -8,9 +8,6 @@ Basically just a chron that looks for outputs from a command line job and keeps 
     //–s 1 –e 125 for frame start end if necessary
     -proj might be required?
 todo:
-render out of Google drive
-static ip for render trigger https://openwrt.org/ raspberry pi wakes main comp? 
-onwakelan?
+Instead of dying, recovers gracefully
 then copy your folder via FTP or locally (locally for now) or to google drive
-hit an online endpoint to schedule job for file name
 see schedules via endpoint
